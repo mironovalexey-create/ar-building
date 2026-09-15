@@ -9,11 +9,18 @@
   <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image-aframe.prod.js"></script>
   <style>
     html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;font-family:Arial,sans-serif}
-    .hint{position:fixed;z-index:10;left:50%;bottom:24px;transform:translateX(-50%);padding:10px 16px;border-radius:20px;background:rgba(0,0,0,.65);color:#fff;font-size:14px;white-space:nowrap;pointer-events:none}
+    .hint{position:fixed;z-index:10;left:50%;bottom:20px;transform:translateX(-50%);padding:8px 12px;border-radius:18px;background:rgba(0,0,0,.65);color:#fff;font-size:13px;white-space:nowrap;pointer-events:none}.controls{position:fixed;z-index:20;right:14px;bottom:14px;display:grid;grid-template-columns:52px 52px 52px;grid-template-rows:52px 52px;gap:6px}.controls button{width:52px;height:52px;border:0;border-radius:12px;background:rgba(0,0,0,.62);color:#fff;font-size:23px;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}.controls button:active{background:rgba(255,255,255,.35)}.up{grid-column:2}.left{grid-column:1;grid-row:2}.down{grid-column:2;grid-row:2}.right{grid-column:3;grid-row:2}.readout{position:fixed;z-index:20;top:14px;left:50%;transform:translateX(-50%);padding:7px 10px;border-radius:10px;background:rgba(0,0,0,.62);color:#fff;font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
   </style>
 </head>
 <body>
   <div class="hint">Наведите камеру на изображение</div>
+  <div class="readout" id="readout">X -0.416 · Y 0 · Z 1.101</div>
+  <div class="controls" aria-label="Перемещение модели">
+    <button class="up" id="up">↑</button>
+    <button class="left" id="left">←</button>
+    <button class="down" id="down">↓</button>
+    <button class="right" id="right">→</button>
+  </div>
   <a-scene
     mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 1; autoStart: true; filterMinCF: 0.001; filterBeta: 0.01; warmupTolerance: 8; missTolerance: 12; uiLoading: yes; uiScanning: yes; uiError: yes"
     color-space="sRGB"
@@ -41,6 +48,21 @@
         rotation="0 180 0">
       </a-gltf-model>
     </a-entity>
-  </a-scene>
+    </a-scene>
+  <script>
+    const model = document.querySelector('a-gltf-model');
+    const readout = document.getElementById('readout');
+    let x = -0.416, y = 0, z = 1.101;
+    const step = 0.02;
+    function apply(){
+      model.setAttribute('position', `${x} ${y} ${z}`);
+      readout.textContent = `X ${x.toFixed(3)} · Y ${y.toFixed(3)} · Z ${z.toFixed(3)}`;
+    }
+    document.getElementById('left').addEventListener('click', ()=>{x-=step;apply()});
+    document.getElementById('right').addEventListener('click', ()=>{x+=step;apply()});
+    document.getElementById('up').addEventListener('click', ()=>{y+=step;apply()});
+    document.getElementById('down').addEventListener('click', ()=>{y-=step;apply()});
+    apply();
+  </script>
 </body>
 </html>
