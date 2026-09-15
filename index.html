@@ -3,66 +3,334 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
   <title>AR Building Prototype</title>
+
+  <!-- MindAR -->
   <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image.prod.js"></script>
+
+  <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+
+  <!-- MindAR + A-Frame -->
   <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image-aframe.prod.js"></script>
+
   <style>
-    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;font-family:Arial,sans-serif}
-    .hint{position:fixed;z-index:10;left:50%;bottom:20px;transform:translateX(-50%);padding:8px 12px;border-radius:18px;background:rgba(0,0,0,.65);color:#fff;font-size:13px;white-space:nowrap;pointer-events:none}.controls{position:fixed;z-index:20;right:14px;bottom:14px;display:grid;grid-template-columns:52px 52px 52px;grid-template-rows:52px 52px;gap:6px}.controls button{width:52px;height:52px;border:0;border-radius:12px;background:rgba(0,0,0,.62);color:#fff;font-size:23px;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}.controls button:active{background:rgba(255,255,255,.35)}.up{grid-column:2}.left{grid-column:1;grid-row:2}.down{grid-column:2;grid-row:2}.right{grid-column:3;grid-row:2}.readout{position:fixed;z-index:20;top:14px;left:50%;transform:translateX(-50%);padding:7px 10px;border-radius:10px;background:rgba(0,0,0,.62);color:#fff;font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      font-family: Arial, sans-serif;
+    }
+
+    .hint {
+      position: fixed;
+      z-index: 20;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%);
+
+      padding: 10px 16px;
+      border-radius: 20px;
+
+      background: rgba(0, 0, 0, 0.65);
+      color: #fff;
+
+      font-size: 14px;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .controls {
+      position: fixed;
+      z-index: 30;
+
+      left: 50%;
+      bottom: 80px;
+      transform: translateX(-50%);
+
+      display: grid;
+      grid-template-columns: 60px 60px 60px;
+      grid-template-rows: 60px 60px;
+
+      gap: 8px;
+      align-items: center;
+      justify-items: center;
+    }
+
+    .controls button {
+      width: 60px;
+      height: 60px;
+
+      border: none;
+      border-radius: 14px;
+
+      background: rgba(0, 0, 0, 0.65);
+      color: white;
+
+      font-size: 28px;
+      font-weight: bold;
+
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    .controls button:active {
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    .empty {
+      width: 60px;
+      height: 60px;
+    }
+
+    .debug {
+      position: fixed;
+      z-index: 30;
+
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+
+      padding: 7px 12px;
+      border-radius: 12px;
+
+      background: rgba(0, 0, 0, 0.65);
+      color: #fff;
+
+      font-size: 13px;
+      font-family: monospace;
+
+      white-space: nowrap;
+      pointer-events: none;
+    }
   </style>
 </head>
+
 <body>
-  <div class="hint">Наведите камеру на изображение</div>
-  <div class="readout" id="readout">X -0.416 · Y 0 · Z 1.101</div>
-  <div class="controls" aria-label="Перемещение модели">
-    <button class="up" id="up">↑</button>
-    <button class="left" id="left">←</button>
-    <button class="down" id="down">↓</button>
-    <button class="right" id="right">→</button>
+
+  <div class="hint">
+    Наведите камеру на изображение
   </div>
+
+  <div class="debug" id="debug">
+    X 0.416 · Y 0.000 · Z -0.525
+  </div>
+
+  <!-- Ручная юстировка -->
+  <div class="controls">
+
+    <div class="empty"></div>
+
+    <button id="up">↑</button>
+
+    <div class="empty"></div>
+
+    <button id="left">←</button>
+
+    <button id="down">↓</button>
+
+    <button id="right">→</button>
+
+  </div>
+
   <a-scene
-    mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 1; autoStart: true; filterMinCF: 0.001; filterBeta: 0.01; warmupTolerance: 8; missTolerance: 12; uiLoading: yes; uiScanning: yes; uiError: yes"
+
+    mindar-image="
+      imageTargetSrc: ./targets.mind;
+      maxTrack: 1;
+
+      filterMinCF: 0.0003;
+      filterBeta: 0.002;
+
+      warmupTolerance: 8;
+      missTolerance: 15;
+
+      autoStart: true;
+
+      uiLoading: yes;
+      uiScanning: yes;
+      uiError: yes;
+    "
+
     color-space="sRGB"
-    renderer="colorManagement: true, physicallyCorrectLights"
+
+    renderer="
+      colorManagement: true;
+      physicallyCorrectLights;
+      antialias: true;
+    "
+
     vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: false">
+
+    device-orientation-permission-ui="enabled: false"
+  >
 
     <a-assets>
-      <a-asset-item id="building" src="./assets/building.glb"></a-asset-item>
+
+      <a-asset-item
+        id="building"
+        src="./assets/building.glb">
+      </a-asset-item>
+
     </a-assets>
 
-    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    <a-camera
+      position="0 0 0"
+      look-controls="enabled: false">
+    </a-camera>
 
-    <a-entity mindar-image-target="targetIndex: 0">
+
+    <!-- IMAGE TARGET -->
+
+    <a-entity
+      id="target"
+      mindar-image-target="targetIndex: 0"
+    >
+
       <!--
-        Target width = 1.0.
-        Original model bounds: X=-2.038..22.820, Y=0..6.384, Z=-27.007..0.769.
-        Scale 0.04 makes the building about 0.995m wide and 0.255m high relative to target width.
-        Position centers X/Z and puts the complete model in front of the target plane.
+        Image Target width = 1.0
+
+        Модель:
+        - центрирована относительно target
+        - повернута на 180° вокруг Y
+        - масштаб 0.04
+
+        Начальная позиция:
+        X = 0.416
+        Y = 0
+        Z = -0.525
       -->
+
       <a-gltf-model
+
+        id="buildingModel"
+
         src="#building"
-        position="-0.416 0 1.101"
+
+        position="0.416 0 -0.525"
+
         scale="0.04 0.04 0.04"
-        rotation="0 180 0">
-      </a-gltf-model>
+
+        rotation="0 180 0"
+
+      ></a-gltf-model>
+
     </a-entity>
-    </a-scene>
+
+  </a-scene>
+
+
   <script>
-    const model = document.querySelector('a-gltf-model');
-    const readout = document.getElementById('readout');
-    let x = -0.416, y = 0, z = 1.101;
+
+    /*
+      --------------------------------------------------
+      РУЧНАЯ ЮСТИРОВКА
+      --------------------------------------------------
+
+      Шаг изменения координат:
+      0.02
+
+      ← →  меняют X
+      ↑ ↓  меняют Y
+    */
+
+    const model = document.querySelector("#buildingModel");
+    const debug = document.querySelector("#debug");
+
+    let x = 0.416;
+    let y = 0.000;
+    let z = -0.525;
+
     const step = 0.02;
-    function apply(){
-      model.setAttribute('position', `${x} ${y} ${z}`);
-      readout.textContent = `X ${x.toFixed(3)} · Y ${y.toFixed(3)} · Z ${z.toFixed(3)}`;
+
+
+    function updateModel() {
+
+      model.setAttribute(
+        "position",
+        `${x} ${y} ${z}`
+      );
+
+      debug.textContent =
+        `X ${x.toFixed(3)} · Y ${y.toFixed(3)} · Z ${z.toFixed(3)}`;
+
+      console.log(
+        `position="${x.toFixed(3)} ${y.toFixed(3)} ${z.toFixed(3)}"`
+      );
     }
-    document.getElementById('left').addEventListener('click', ()=>{x-=step;apply()});
-    document.getElementById('right').addEventListener('click', ()=>{x+=step;apply()});
-    document.getElementById('up').addEventListener('click', ()=>{y+=step;apply()});
-    document.getElementById('down').addEventListener('click', ()=>{y-=step;apply()});
-    apply();
+
+
+    /*
+      ВЛЕВО
+    */
+
+    document
+      .getElementById("left")
+      .addEventListener("click", () => {
+
+        x -= step;
+
+        updateModel();
+
+      });
+
+
+    /*
+      ВПРАВО
+    */
+
+    document
+      .getElementById("right")
+      .addEventListener("click", () => {
+
+        x += step;
+
+        updateModel();
+
+      });
+
+
+    /*
+      ВВЕРХ
+    */
+
+    document
+      .getElementById("up")
+      .addEventListener("click", () => {
+
+        y += step;
+
+        updateModel();
+
+      });
+
+
+    /*
+      ВНИЗ
+    */
+
+    document
+      .getElementById("down")
+      .addEventListener("click", () => {
+
+        y -= step;
+
+        updateModel();
+
+      });
+
+
+    /*
+      Выводим начальные координаты
+    */
+
+    updateModel();
+
   </script>
+
 </body>
 </html>
