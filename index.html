@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>AR Building Prototype</title>
+  <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image.prod.js"></script>
+  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image-aframe.prod.js"></script>
+  <style>
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;font-family:Arial,sans-serif}
+    .hint{position:fixed;z-index:10;left:50%;bottom:24px;transform:translateX(-50%);padding:10px 16px;border-radius:20px;background:rgba(0,0,0,.65);color:#fff;font-size:14px;white-space:nowrap;pointer-events:none}
+  </style>
+</head>
+<body>
+  <div class="hint">Наведите камеру на изображение</div>
+  <a-scene
+    mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 1; autoStart: true; uiLoading: yes; uiScanning: yes; uiError: yes"
+    color-space="sRGB"
+    renderer="colorManagement: true, physicallyCorrectLights"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false">
+
+    <a-assets>
+      <a-asset-item id="building" src="./assets/building.glb"></a-asset-item>
+    </a-assets>
+
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+    <a-entity mindar-image-target="targetIndex: 0">
+      <!--
+        Target width = 1.0.
+        Original model bounds: X=-2.038..22.820, Y=0..6.384, Z=-27.007..0.769.
+        Scale 0.04 makes the building about 0.995m wide and 0.255m high relative to target width.
+        Position centers X/Z and puts the complete model in front of the target plane.
+      -->
+      <a-gltf-model
+        src="#building"
+        position="-0.416 0 1.101"
+        scale="0.04 0.04 0.04"
+        rotation="0 0 0">
+      </a-gltf-model>
+    </a-entity>
+  </a-scene>
+</body>
+</html>
