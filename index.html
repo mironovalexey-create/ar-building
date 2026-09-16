@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
-  <title>AR Test — Выборгская</title>
+  <title>AR — Выборгская</title>
 
   <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image.prod.js"></script>
   <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
@@ -64,48 +64,61 @@
   vr-mode-ui="enabled: false"
   device-orientation-permission-ui="enabled: false">
 
+  <a-assets>
+
+    <a-asset-item
+      id="vyborgAsset"
+      src="./assets/выборгская.glb">
+    </a-asset-item>
+
+  </a-assets>
+
   <a-camera
     position="0 0 0"
     look-controls="enabled: false">
   </a-camera>
 
-  <!-- НОВЫЙ МАРКЕР ВЫБОРГСКОЙ -->
+
+  <!-- ВЫБОРГСКАЯ -->
   <!-- targetIndex 0 -->
 
   <a-entity
-    id="target"
+    id="targetVyborg"
     mindar-image-target="targetIndex: 0">
 
-    <!-- ТЕСТОВЫЙ ОБЪЕКТ -->
-    <a-box
-      id="testBox"
-      position="0 0 0.2"
-      rotation="0 0 0"
-      scale="0.4 0.4 0.4"
-      visible="false">
-    </a-box>
+    <a-gltf-model
+      id="modelVyborg"
+      src="#vyborgAsset"
+      visible="false"
+      position="0 0 0"
+      scale="0.04 0.04 0.04"
+      rotation="0 180 0">
+    </a-gltf-model>
 
   </a-entity>
 
 </a-scene>
 
+
 <script>
 
-const target = document.querySelector("#target");
-const box = document.querySelector("#testBox");
+const target = document.querySelector("#targetVyborg");
+const model = document.querySelector("#modelVyborg");
 const status = document.querySelector("#status");
+
 
 target.addEventListener("targetFound", () => {
 
-  box.setAttribute("visible", true);
+  model.setAttribute("visible", true);
 
-  status.textContent = "✓ МАРКЕР ВЫБОРГСКОЙ РАСПОЗНАН";
+  status.textContent = "ВЫБОРГСКАЯ";
 
 });
 
+
 target.addEventListener("targetLost", () => {
 
-  box.setAttribute("visible", false);
+  model.setAttribute("visible", false);
 
   status.textContent = "Наведите камеру на маркер";
 
