@@ -2,39 +2,61 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover">
 
   <title>AR — Выборгская</title>
 
+  <!-- MindAR -->
   <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image.prod.js"></script>
+
+  <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+
+  <!-- MindAR + A-Frame -->
   <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image-aframe.prod.js"></script>
 
   <style>
-    html, body {
+
+    html,
+    body {
       margin: 0;
+      padding: 0;
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #000;
-      font-family: Arial, sans-serif;
+      background: transparent;
     }
 
     #status {
       position: fixed;
-      z-index: 100;
+      z-index: 1000;
+
       top: 15px;
       left: 50%;
+
       transform: translateX(-50%);
+
       padding: 10px 16px;
+
       border-radius: 20px;
-      background: rgba(0,0,0,.7);
+
+      background: rgba(0,0,0,0.65);
+
       color: white;
+
+      font-family: Arial, sans-serif;
       font-size: 14px;
+
       white-space: nowrap;
     }
+
   </style>
+
 </head>
+
 
 <body>
 
@@ -42,27 +64,41 @@
   Наведите камеру на маркер
 </div>
 
+
 <a-scene
+
+  embedded
+
+  renderer="
+    alpha: true;
+    colorManagement: true;
+    physicallyCorrectLights: true;
+    antialias: true;
+  "
+
+  vr-mode-ui="enabled: false"
+
+  device-orientation-permission-ui="enabled: false"
+
   mindar-image="
     imageTargetSrc: ./targets.mind;
+
     maxTrack: 1;
+
     filterMinCF: 0.0003;
     filterBeta: 0.002;
+
     warmupTolerance: 8;
     missTolerance: 15;
+
     autoStart: true;
+
     uiLoading: yes;
     uiScanning: yes;
     uiError: yes;
   "
-  color-space="sRGB"
-  renderer="
-    colorManagement: true;
-    physicallyCorrectLights;
-    antialias: true;
-  "
-  vr-mode-ui="enabled: false"
-  device-orientation-permission-ui="enabled: false">
+>
+
 
   <a-assets>
 
@@ -73,56 +109,95 @@
 
   </a-assets>
 
+
+  <!-- Камера -->
+
   <a-camera
     position="0 0 0"
     look-controls="enabled: false">
   </a-camera>
 
 
-  <!-- ВЫБОРГСКАЯ -->
-  <!-- targetIndex 0 -->
+  <!-- МЕТКА ВЫБОРГСКОЙ -->
 
   <a-entity
     id="targetVyborg"
     mindar-image-target="targetIndex: 0">
 
+
+    <!-- 3D МОДЕЛЬ -->
+
     <a-gltf-model
+
       id="modelVyborg"
+
       src="#vyborgAsset"
+
       visible="false"
+
       position="0 0 0"
+
       scale="0.04 0.04 0.04"
+
       rotation="0 180 0">
+
     </a-gltf-model>
 
+
   </a-entity>
+
 
 </a-scene>
 
 
 <script>
 
-const target = document.querySelector("#targetVyborg");
-const model = document.querySelector("#modelVyborg");
-const status = document.querySelector("#status");
+
+const target =
+  document.querySelector("#targetVyborg");
 
 
-target.addEventListener("targetFound", () => {
-
-  model.setAttribute("visible", true);
-
-  status.textContent = "ВЫБОРГСКАЯ";
-
-});
+const model =
+  document.querySelector("#modelVyborg");
 
 
-target.addEventListener("targetLost", () => {
+const status =
+  document.querySelector("#status");
 
-  model.setAttribute("visible", false);
 
-  status.textContent = "Наведите камеру на маркер";
 
-});
+target.addEventListener(
+  "targetFound",
+  () => {
+
+    model.setAttribute(
+      "visible",
+      true
+    );
+
+    status.textContent =
+      "ВЫБОРГСКАЯ";
+
+  }
+);
+
+
+
+target.addEventListener(
+  "targetLost",
+  () => {
+
+    model.setAttribute(
+      "visible",
+      false
+    );
+
+    status.textContent =
+      "Наведите камеру на маркер";
+
+  }
+);
+
 
 </script>
 
