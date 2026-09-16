@@ -3,21 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>AR Architecture — 2 Models</title>
 
-  <title>AR Building Prototype</title>
-
-  <!-- MindAR -->
   <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image.prod.js"></script>
-
-  <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-
-  <!-- MindAR + A-Frame -->
   <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image-aframe.prod.js"></script>
 
   <style>
-    html,
-    body {
+    html, body {
       margin: 0;
       width: 100%;
       height: 100%;
@@ -32,305 +25,172 @@
       left: 50%;
       bottom: 24px;
       transform: translateX(-50%);
-
       padding: 10px 16px;
       border-radius: 20px;
-
-      background: rgba(0, 0, 0, 0.65);
+      background: rgba(0,0,0,.65);
       color: #fff;
-
       font-size: 14px;
       white-space: nowrap;
       pointer-events: none;
     }
 
-    .controls {
+    .status {
       position: fixed;
-      z-index: 30;
-
+      z-index: 20;
       left: 50%;
-      bottom: 80px;
+      top: 14px;
       transform: translateX(-50%);
-
-      display: grid;
-      grid-template-columns: 60px 60px 60px;
-      grid-template-rows: 60px 60px;
-
-      gap: 8px;
-      align-items: center;
-      justify-items: center;
-    }
-
-    .controls button {
-      width: 60px;
-      height: 60px;
-
-      border: none;
-      border-radius: 14px;
-
-      background: rgba(0, 0, 0, 0.65);
-      color: white;
-
-      font-size: 28px;
-      font-weight: bold;
-
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-    }
-
-    .controls button:active {
-      background: rgba(255, 255, 255, 0.35);
-    }
-
-    .empty {
-      width: 60px;
-      height: 60px;
-    }
-
-    .debug {
-      position: fixed;
-      z-index: 30;
-
-      top: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-
       padding: 7px 12px;
-      border-radius: 12px;
-
-      background: rgba(0, 0, 0, 0.65);
+      border-radius: 14px;
+      background: rgba(0,0,0,.55);
       color: #fff;
-
       font-size: 13px;
-      font-family: monospace;
-
-      white-space: nowrap;
       pointer-events: none;
     }
   </style>
 </head>
 
 <body>
-
-  <div class="hint">
-    Наведите камеру на изображение
-  </div>
-
-  <div class="debug" id="debug">
-    X 0.416 · Y 0.000 · Z -0.525
-  </div>
-
-  <!-- Ручная юстировка -->
-  <div class="controls">
-
-    <div class="empty"></div>
-
-    <button id="up">↑</button>
-
-    <div class="empty"></div>
-
-    <button id="left">←</button>
-
-    <button id="down">↓</button>
-
-    <button id="right">→</button>
-
-  </div>
+  <div class="status" id="status">Наведите камеру на метку</div>
+  <div class="hint">Наведите камеру на метку</div>
 
   <a-scene
-
     mindar-image="
       imageTargetSrc: ./targets.mind;
       maxTrack: 1;
-
       filterMinCF: 0.0003;
       filterBeta: 0.002;
-
       warmupTolerance: 8;
       missTolerance: 15;
-
       autoStart: true;
-
       uiLoading: yes;
       uiScanning: yes;
       uiError: yes;
     "
-
     color-space="sRGB"
-
-    renderer="
-      colorManagement: true;
-      physicallyCorrectLights;
-      antialias: true;
-    "
-
+    renderer="colorManagement: true; physicallyCorrectLights; antialias: true;"
     vr-mode-ui="enabled: false"
-
-    device-orientation-permission-ui="enabled: false"
-  >
+    device-orientation-permission-ui="enabled: false">
 
     <a-assets>
-
-      <a-asset-item
-        id="building"
-        src="./assets/building.glb">
-      </a-asset-item>
-
+      <a-asset-item id="vyborgAsset" src="./assets/выборгская.glb"></a-asset-item>
+      <a-asset-item id="petrovskyAsset" src="./assets/петровский.glb"></a-asset-item>
     </a-assets>
 
-    <a-camera
-      position="0 0 0"
-      look-controls="enabled: false">
-    </a-camera>
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-
-    <!-- IMAGE TARGET -->
-
-    <a-entity
-      id="target"
-      mindar-image-target="targetIndex: 0"
-    >
-
-      <!--
-        Image Target width = 1.0
-
-        Модель:
-        - центрирована относительно target
-        - повернута на 180° вокруг Y
-        - масштаб 0.04
-
-        Начальная позиция:
-        X = 0.416
-        Y = 0
-        Z = -0.525
-      -->
-
+    <!-- Target 0: ВЫБОРГСКАЯ -->
+    <a-entity id="targetVyborg" mindar-image-target="targetIndex: 0">
       <a-gltf-model
-
-        id="buildingModel"
-
-        src="#building"
-
+        id="modelVyborg"
+        src="#vyborgAsset"
+        visible="false"
         position="0.416 0 -0.525"
-
         scale="0.04 0.04 0.04"
+        rotation="0 180 0">
+      </a-gltf-model>
+    </a-entity>
 
-        rotation="0 180 0"
-
-      ></a-gltf-model>
-
+    <!-- Target 1: ПЕТРОВСКИЙ -->
+    <a-entity id="targetPetrovsky" mindar-image-target="targetIndex: 1">
+      <a-gltf-model
+        id="modelPetrovsky"
+        src="#petrovskyAsset"
+        visible="false"
+        position="0 0 0"
+        scale="0.04 0.04 0.04"
+        rotation="0 180 0">
+      </a-gltf-model>
     </a-entity>
 
   </a-scene>
 
-
   <script>
+    const targetVyborg = document.querySelector("#targetVyborg");
+    const targetPetrovsky = document.querySelector("#targetPetrovsky");
 
-    /*
-      --------------------------------------------------
-      РУЧНАЯ ЮСТИРОВКА
-      --------------------------------------------------
+    const modelVyborg = document.querySelector("#modelVyborg");
+    const modelPetrovsky = document.querySelector("#modelPetrovsky");
 
-      Шаг изменения координат:
-      0.02
+    const status = document.querySelector("#status");
 
-      ← →  меняют X
-      ↑ ↓  меняют Y
-    */
+    let foundVyborg = false;
+    let foundPetrovsky = false;
+    let activeTarget = null;
 
-    const model = document.querySelector("#buildingModel");
-    const debug = document.querySelector("#debug");
-
-    let x = 0.416;
-    let y = 0.000;
-    let z = -0.525;
-
-    const step = 0.02;
-
-
-    function updateModel() {
-
-      model.setAttribute(
-        "position",
-        `${x} ${y} ${z}`
-      );
-
-      debug.textContent =
-        `X ${x.toFixed(3)} · Y ${y.toFixed(3)} · Z ${z.toFixed(3)}`;
-
-      console.log(
-        `position="${x.toFixed(3)} ${y.toFixed(3)} ${z.toFixed(3)}"`
-      );
+    function hideAllModels() {
+      modelVyborg.setAttribute("visible", false);
+      modelPetrovsky.setAttribute("visible", false);
     }
 
+    function showOnly(name) {
+      hideAllModels();
 
-    /*
-      ВЛЕВО
-    */
+      if (name === "vyborg") {
+        modelVyborg.setAttribute("visible", true);
+        activeTarget = "vyborg";
+        status.textContent = "ВЫБОРГСКАЯ";
+      }
 
-    document
-      .getElementById("left")
-      .addEventListener("click", () => {
+      if (name === "petrovsky") {
+        modelPetrovsky.setAttribute("visible", true);
+        activeTarget = "petrovsky";
+        status.textContent = "ПЕТРОВСКИЙ";
+      }
+    }
 
-        x -= step;
+    function chooseNextTarget() {
+      // If both are visible, keep the current model to avoid flickering.
+      if (activeTarget === "vyborg" && foundVyborg) return;
+      if (activeTarget === "petrovsky" && foundPetrovsky) return;
 
-        updateModel();
+      if (foundVyborg) {
+        showOnly("vyborg");
+      } else if (foundPetrovsky) {
+        showOnly("petrovsky");
+      } else {
+        hideAllModels();
+        activeTarget = null;
+        status.textContent = "Наведите камеру на метку";
+      }
+    }
 
-      });
+    targetVyborg.addEventListener("targetFound", () => {
+      foundVyborg = true;
 
+      // If another target is currently active, do not switch while it is tracked.
+      if (!activeTarget) {
+        showOnly("vyborg");
+      }
+    });
 
-    /*
-      ВПРАВО
-    */
+    targetVyborg.addEventListener("targetLost", () => {
+      foundVyborg = false;
 
-    document
-      .getElementById("right")
-      .addEventListener("click", () => {
+      if (activeTarget === "vyborg") {
+        activeTarget = null;
+        chooseNextTarget();
+      }
+    });
 
-        x += step;
+    targetPetrovsky.addEventListener("targetFound", () => {
+      foundPetrovsky = true;
 
-        updateModel();
+      if (!activeTarget) {
+        showOnly("petrovsky");
+      }
+    });
 
-      });
+    targetPetrovsky.addEventListener("targetLost", () => {
+      foundPetrovsky = false;
 
+      if (activeTarget === "petrovsky") {
+        activeTarget = null;
+        chooseNextTarget();
+      }
+    });
 
-    /*
-      ВВЕРХ
-    */
-
-    document
-      .getElementById("up")
-      .addEventListener("click", () => {
-
-        y += step;
-
-        updateModel();
-
-      });
-
-
-    /*
-      ВНИЗ
-    */
-
-    document
-      .getElementById("down")
-      .addEventListener("click", () => {
-
-        y -= step;
-
-        updateModel();
-
-      });
-
-
-    /*
-      Выводим начальные координаты
-    */
-
-    updateModel();
-
+    hideAllModels();
   </script>
-
 </body>
 </html>
