@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>AR Architecture — 2 Models</title>
+
+  <title>AR Architecture</title>
 
   <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image.prod.js"></script>
   <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
@@ -51,146 +52,334 @@
 </head>
 
 <body>
-  <div class="status" id="status">Наведите камеру на метку</div>
-  <div class="hint">Наведите камеру на метку</div>
+
+  <div class="status" id="status">
+    Наведите камеру на метку
+  </div>
+
+  <div class="hint">
+    Наведите камеру на метку
+  </div>
 
   <a-scene
+
     mindar-image="
       imageTargetSrc: ./targets.mind;
       maxTrack: 1;
+
       filterMinCF: 0.0003;
       filterBeta: 0.002;
+
       warmupTolerance: 8;
       missTolerance: 15;
+
       autoStart: true;
+
       uiLoading: yes;
       uiScanning: yes;
       uiError: yes;
     "
+
     color-space="sRGB"
-    renderer="colorManagement: true; physicallyCorrectLights; antialias: true;"
+
+    renderer="
+      colorManagement: true;
+      physicallyCorrectLights;
+      antialias: true;
+    "
+
     vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: false">
+
+    device-orientation-permission-ui="enabled: false"
+  >
 
     <a-assets>
-      <a-asset-item id="vyborgAsset" src="./assets/выборгская.glb"></a-asset-item>
-      <a-asset-item id="petrovskyAsset" src="./assets/петровский.glb"></a-asset-item>
+
+      <a-asset-item
+        id="petrovskyAsset"
+        src="./assets/петровский.glb">
+      </a-asset-item>
+
+      <a-asset-item
+        id="vyborgAsset"
+        src="./assets/выборгская.glb">
+      </a-asset-item>
+
     </a-assets>
 
-    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    <!-- Target 0: ВЫБОРГСКАЯ -->
-    <a-entity id="targetVyborg" mindar-image-target="targetIndex: 0">
+    <a-camera
+      position="0 0 0"
+      look-controls="enabled: false">
+    </a-camera>
+
+
+    <!--
+      ==============================================
+      TARGET 0 — ПЕТРОВСКИЙ
+      ==============================================
+    -->
+
+    <a-entity
+      id="targetPetrovsky"
+      mindar-image-target="targetIndex: 0">
+
       <a-gltf-model
-        id="modelVyborg"
-        src="#vyborgAsset"
+
+        id="modelPetrovsky"
+
+        src="#petrovskyAsset"
+
         visible="false"
-        position="0.416 0 -0.525"
+
+        position="0 0 0"
+
         scale="0.04 0.04 0.04"
+
         rotation="0 180 0">
+
       </a-gltf-model>
+
     </a-entity>
 
-    <!-- Target 1: ПЕТРОВСКИЙ -->
-    <a-entity id="targetPetrovsky" mindar-image-target="targetIndex: 1">
+
+    <!--
+      ==============================================
+      TARGET 1 — ВЫБОРГСКАЯ
+      ==============================================
+    -->
+
+    <a-entity
+      id="targetVyborg"
+      mindar-image-target="targetIndex: 1">
+
       <a-gltf-model
-        id="modelPetrovsky"
-        src="#petrovskyAsset"
+
+        id="modelVyborg"
+
+        src="#vyborgAsset"
+
         visible="false"
+
         position="0 0 0"
+
         scale="0.04 0.04 0.04"
+
         rotation="0 180 0">
+
       </a-gltf-model>
+
     </a-entity>
 
   </a-scene>
 
+
   <script>
-    const targetVyborg = document.querySelector("#targetVyborg");
-    const targetPetrovsky = document.querySelector("#targetPetrovsky");
 
-    const modelVyborg = document.querySelector("#modelVyborg");
-    const modelPetrovsky = document.querySelector("#modelPetrovsky");
+    const targetPetrovsky =
+      document.querySelector("#targetPetrovsky");
 
-    const status = document.querySelector("#status");
+    const targetVyborg =
+      document.querySelector("#targetVyborg");
 
-    let foundVyborg = false;
-    let foundPetrovsky = false;
+
+    const modelPetrovsky =
+      document.querySelector("#modelPetrovsky");
+
+    const modelVyborg =
+      document.querySelector("#modelVyborg");
+
+
+    const status =
+      document.querySelector("#status");
+
+
     let activeTarget = null;
 
-    function hideAllModels() {
-      modelVyborg.setAttribute("visible", false);
-      modelPetrovsky.setAttribute("visible", false);
+    let petrovskyFound = false;
+
+    let vyborgFound = false;
+
+
+    /*
+     * Скрыть обе модели
+     */
+
+    function hideAll() {
+
+      modelPetrovsky.setAttribute(
+        "visible",
+        false
+      );
+
+      modelVyborg.setAttribute(
+        "visible",
+        false
+      );
+
     }
+
+
+    /*
+     * Показать только одну модель
+     */
 
     function showOnly(name) {
-      hideAllModels();
 
-      if (name === "vyborg") {
-        modelVyborg.setAttribute("visible", true);
-        activeTarget = "vyborg";
-        status.textContent = "ВЫБОРГСКАЯ";
-      }
+      hideAll();
+
 
       if (name === "petrovsky") {
-        modelPetrovsky.setAttribute("visible", true);
+
+        modelPetrovsky.setAttribute(
+          "visible",
+          true
+        );
+
         activeTarget = "petrovsky";
-        status.textContent = "ПЕТРОВСКИЙ";
+
+        status.textContent =
+          "ПЕТРОВСКИЙ";
+
       }
+
+
+      if (name === "vyborg") {
+
+        modelVyborg.setAttribute(
+          "visible",
+          true
+        );
+
+        activeTarget = "vyborg";
+
+        status.textContent =
+          "ВЫБОРГСКАЯ";
+
+      }
+
     }
 
-    function chooseNextTarget() {
-      // If both are visible, keep the current model to avoid flickering.
-      if (activeTarget === "vyborg" && foundVyborg) return;
-      if (activeTarget === "petrovsky" && foundPetrovsky) return;
 
-      if (foundVyborg) {
-        showOnly("vyborg");
-      } else if (foundPetrovsky) {
-        showOnly("petrovsky");
-      } else {
-        hideAllModels();
-        activeTarget = null;
-        status.textContent = "Наведите камеру на метку";
+    /*
+     * ПЕТРОВСКИЙ НАЙДЕН
+     */
+
+    targetPetrovsky.addEventListener(
+      "targetFound",
+      () => {
+
+        petrovskyFound = true;
+
+
+        if (!activeTarget) {
+
+          showOnly("petrovsky");
+
+        }
+
       }
-    }
+    );
 
-    targetVyborg.addEventListener("targetFound", () => {
-      foundVyborg = true;
 
-      // If another target is currently active, do not switch while it is tracked.
-      if (!activeTarget) {
-        showOnly("vyborg");
+    /*
+     * ПЕТРОВСКИЙ ПОТЕРЯН
+     */
+
+    targetPetrovsky.addEventListener(
+      "targetLost",
+      () => {
+
+        petrovskyFound = false;
+
+
+        if (activeTarget === "petrovsky") {
+
+          activeTarget = null;
+
+
+          if (vyborgFound) {
+
+            showOnly("vyborg");
+
+          } else {
+
+            hideAll();
+
+            status.textContent =
+              "Наведите камеру на метку";
+
+          }
+
+        }
+
       }
-    });
+    );
 
-    targetVyborg.addEventListener("targetLost", () => {
-      foundVyborg = false;
 
-      if (activeTarget === "vyborg") {
-        activeTarget = null;
-        chooseNextTarget();
+    /*
+     * ВЫБОРГСКАЯ НАЙДЕНА
+     */
+
+    targetVyborg.addEventListener(
+      "targetFound",
+      () => {
+
+        vyborgFound = true;
+
+
+        if (!activeTarget) {
+
+          showOnly("vyborg");
+
+        }
+
       }
-    });
+    );
 
-    targetPetrovsky.addEventListener("targetFound", () => {
-      foundPetrovsky = true;
 
-      if (!activeTarget) {
-        showOnly("petrovsky");
+    /*
+     * ВЫБОРГСКАЯ ПОТЕРЯНА
+     */
+
+    targetVyborg.addEventListener(
+      "targetLost",
+      () => {
+
+        vyborgFound = false;
+
+
+        if (activeTarget === "vyborg") {
+
+          activeTarget = null;
+
+
+          if (petrovskyFound) {
+
+            showOnly("petrovsky");
+
+          } else {
+
+            hideAll();
+
+            status.textContent =
+              "Наведите камеру на метку";
+
+          }
+
+        }
+
       }
-    });
+    );
 
-    targetPetrovsky.addEventListener("targetLost", () => {
-      foundPetrovsky = false;
 
-      if (activeTarget === "petrovsky") {
-        activeTarget = null;
-        chooseNextTarget();
-      }
-    });
+    /*
+     * Начальное состояние
+     */
 
-    hideAllModels();
+    hideAll();
+
   </script>
+
 </body>
 </html>
