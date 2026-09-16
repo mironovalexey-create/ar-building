@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
-  <title>AR Architecture</title>
+  <title>AR — Выборгская</title>
 
   <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image.prod.js"></script>
   <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
@@ -18,6 +18,20 @@
       overflow: hidden;
       background: #000;
       font-family: Arial, sans-serif;
+    }
+
+    .status {
+      position: fixed;
+      z-index: 20;
+      left: 50%;
+      top: 14px;
+      transform: translateX(-50%);
+      padding: 7px 12px;
+      border-radius: 14px;
+      background: rgba(0,0,0,.55);
+      color: #fff;
+      font-size: 13px;
+      pointer-events: none;
     }
 
     .hint {
@@ -34,352 +48,96 @@
       white-space: nowrap;
       pointer-events: none;
     }
-
-    .status {
-      position: fixed;
-      z-index: 20;
-      left: 50%;
-      top: 14px;
-      transform: translateX(-50%);
-      padding: 7px 12px;
-      border-radius: 14px;
-      background: rgba(0,0,0,.55);
-      color: #fff;
-      font-size: 13px;
-      pointer-events: none;
-    }
   </style>
 </head>
 
 <body>
 
-  <div class="status" id="status">
-    Наведите камеру на метку
-  </div>
+<div class="status" id="status">
+  Наведите камеру на метку ВЫБОРГСКАЯ
+</div>
 
-  <div class="hint">
-    Наведите камеру на метку
-  </div>
+<div class="hint">
+  Наведите камеру на метку
+</div>
 
-  <a-scene
+<a-scene
+  mindar-image="
+    imageTargetSrc: ./targets.mind;
+    maxTrack: 1;
+    filterMinCF: 0.0003;
+    filterBeta: 0.002;
+    warmupTolerance: 8;
+    missTolerance: 15;
+    autoStart: true;
+    uiLoading: yes;
+    uiScanning: yes;
+    uiError: yes;
+  "
+  color-space="sRGB"
+  renderer="
+    colorManagement: true;
+    physicallyCorrectLights;
+    antialias: true;
+  "
+  vr-mode-ui="enabled: false"
+  device-orientation-permission-ui="enabled: false">
 
-    mindar-image="
-      imageTargetSrc: ./targets.mind;
-      maxTrack: 1;
+  <a-assets>
+    <a-asset-item
+      id="vyborgAsset"
+      src="./assets/выборгская.glb">
+    </a-asset-item>
+  </a-assets>
 
-      filterMinCF: 0.0003;
-      filterBeta: 0.002;
+  <a-camera
+    position="0 0 0"
+    look-controls="enabled: false">
+  </a-camera>
 
-      warmupTolerance: 8;
-      missTolerance: 15;
+  <!-- ВЫБОРГСКАЯ = targetIndex 1 -->
 
-      autoStart: true;
+  <a-entity
+    id="targetVyborg"
+    mindar-image-target="targetIndex: 1">
 
-      uiLoading: yes;
-      uiScanning: yes;
-      uiError: yes;
-    "
-
-    color-space="sRGB"
-
-    renderer="
-      colorManagement: true;
-      physicallyCorrectLights;
-      antialias: true;
-    "
-
-    vr-mode-ui="enabled: false"
-
-    device-orientation-permission-ui="enabled: false"
-  >
-
-    <a-assets>
-
-      <a-asset-item
-        id="petrovskyAsset"
-        src="./assets/петровский.glb">
-      </a-asset-item>
-
-      <a-asset-item
-        id="vyborgAsset"
-        src="./assets/выборгская.glb">
-      </a-asset-item>
-
-    </a-assets>
-
-
-    <a-camera
+    <a-gltf-model
+      id="modelVyborg"
+      src="#vyborgAsset"
+      visible="false"
       position="0 0 0"
-      look-controls="enabled: false">
-    </a-camera>
+      scale="0.04 0.04 0.04"
+      rotation="0 180 0">
+    </a-gltf-model>
 
+  </a-entity>
 
-    <!--
-      ==============================================
-      TARGET 0 — ПЕТРОВСКИЙ
-      ==============================================
-    -->
+</a-scene>
 
-    <a-entity
-      id="targetPetrovsky"
-      mindar-image-target="targetIndex: 0">
+<script>
 
-      <a-gltf-model
+const target = document.querySelector("#targetVyborg");
+const model = document.querySelector("#modelVyborg");
+const status = document.querySelector("#status");
 
-        id="modelPetrovsky"
+target.addEventListener("targetFound", () => {
 
-        src="#petrovskyAsset"
+  model.setAttribute("visible", true);
 
-        visible="false"
+  status.textContent = "ВЫБОРГСКАЯ";
 
-        position="0 0 0"
+});
 
-        scale="0.04 0.04 0.04"
+target.addEventListener("targetLost", () => {
 
-        rotation="0 180 0">
+  model.setAttribute("visible", false);
 
-      </a-gltf-model>
+  status.textContent =
+    "Наведите камеру на метку ВЫБОРГСКАЯ";
 
-    </a-entity>
+});
 
-
-    <!--
-      ==============================================
-      TARGET 1 — ВЫБОРГСКАЯ
-      ==============================================
-    -->
-
-    <a-entity
-      id="targetVyborg"
-      mindar-image-target="targetIndex: 1">
-
-      <a-gltf-model
-
-        id="modelVyborg"
-
-        src="#vyborgAsset"
-
-        visible="false"
-
-        position="0 0 0"
-
-        scale="0.04 0.04 0.04"
-
-        rotation="0 180 0">
-
-      </a-gltf-model>
-
-    </a-entity>
-
-  </a-scene>
-
-
-  <script>
-
-    const targetPetrovsky =
-      document.querySelector("#targetPetrovsky");
-
-    const targetVyborg =
-      document.querySelector("#targetVyborg");
-
-
-    const modelPetrovsky =
-      document.querySelector("#modelPetrovsky");
-
-    const modelVyborg =
-      document.querySelector("#modelVyborg");
-
-
-    const status =
-      document.querySelector("#status");
-
-
-    let activeTarget = null;
-
-    let petrovskyFound = false;
-
-    let vyborgFound = false;
-
-
-    /*
-     * Скрыть обе модели
-     */
-
-    function hideAll() {
-
-      modelPetrovsky.setAttribute(
-        "visible",
-        false
-      );
-
-      modelVyborg.setAttribute(
-        "visible",
-        false
-      );
-
-    }
-
-
-    /*
-     * Показать только одну модель
-     */
-
-    function showOnly(name) {
-
-      hideAll();
-
-
-      if (name === "petrovsky") {
-
-        modelPetrovsky.setAttribute(
-          "visible",
-          true
-        );
-
-        activeTarget = "petrovsky";
-
-        status.textContent =
-          "ПЕТРОВСКИЙ";
-
-      }
-
-
-      if (name === "vyborg") {
-
-        modelVyborg.setAttribute(
-          "visible",
-          true
-        );
-
-        activeTarget = "vyborg";
-
-        status.textContent =
-          "ВЫБОРГСКАЯ";
-
-      }
-
-    }
-
-
-    /*
-     * ПЕТРОВСКИЙ НАЙДЕН
-     */
-
-    targetPetrovsky.addEventListener(
-      "targetFound",
-      () => {
-
-        petrovskyFound = true;
-
-
-        if (!activeTarget) {
-
-          showOnly("petrovsky");
-
-        }
-
-      }
-    );
-
-
-    /*
-     * ПЕТРОВСКИЙ ПОТЕРЯН
-     */
-
-    targetPetrovsky.addEventListener(
-      "targetLost",
-      () => {
-
-        petrovskyFound = false;
-
-
-        if (activeTarget === "petrovsky") {
-
-          activeTarget = null;
-
-
-          if (vyborgFound) {
-
-            showOnly("vyborg");
-
-          } else {
-
-            hideAll();
-
-            status.textContent =
-              "Наведите камеру на метку";
-
-          }
-
-        }
-
-      }
-    );
-
-
-    /*
-     * ВЫБОРГСКАЯ НАЙДЕНА
-     */
-
-    targetVyborg.addEventListener(
-      "targetFound",
-      () => {
-
-        vyborgFound = true;
-
-
-        if (!activeTarget) {
-
-          showOnly("vyborg");
-
-        }
-
-      }
-    );
-
-
-    /*
-     * ВЫБОРГСКАЯ ПОТЕРЯНА
-     */
-
-    targetVyborg.addEventListener(
-      "targetLost",
-      () => {
-
-        vyborgFound = false;
-
-
-        if (activeTarget === "vyborg") {
-
-          activeTarget = null;
-
-
-          if (petrovskyFound) {
-
-            showOnly("petrovsky");
-
-          } else {
-
-            hideAll();
-
-            status.textContent =
-              "Наведите камеру на метку";
-
-          }
-
-        }
-
-      }
-    );
-
-
-    /*
-     * Начальное состояние
-     */
-
-    hideAll();
-
-  </script>
+</script>
 
 </body>
 </html>
