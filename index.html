@@ -187,6 +187,11 @@ async function startCamera() {
 target.addEventListener("targetFound", () => {
   targetFound = true;
   model.setAttribute("visible", true);
+
+  // MindAR may update the target entity when tracking resumes.
+  // Re-apply the user's last transform so the model keeps its chosen scale.
+  applyTransform();
+
   status.textContent = "ВЫБОРГСКАЯ";
 });
 
@@ -250,6 +255,8 @@ scene.addEventListener("loaded", function () {
           0.005,
           Math.min(0.20, startScale * (d / startDistance))
         );
+
+        // Save/apply continuously during the pinch.
         applyTransform();
       }
       return;
@@ -274,6 +281,13 @@ scene.addEventListener("loaded", function () {
 
     if (event.touches.length === 0) {
       mode = null;
+
+      // Safari can finish the gesture after its final touch event.
+      // Re-apply the saved scale on the next frame so it cannot snap back.
+      requestAnimationFrame(function () {
+        if (targetFound) applyTransform();
+      });
+
     } else if (event.touches.length === 1) {
       mode = "move";
       lastX = event.touches[0].clientX;
@@ -284,7 +298,16 @@ scene.addEventListener("loaded", function () {
   canvas.addEventListener("touchcancel", function (event) {
     event.preventDefault();
     mode = null;
+
+    requestAnimationFrame(function () {
+      if (targetFound) applyTransform();
+    });
   }, { passive: false });
+
+  // Keep the chosen transform if A-Frame/MindAR refreshes the model component.
+  model.addEventListener("model-loaded", function () {
+    applyTransform();
+  });
 });
 
 startCamera();
