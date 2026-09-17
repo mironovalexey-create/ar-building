@@ -11,9 +11,18 @@
 
   <title>AR — Выборгская</title>
 
+
+  <!-- MindAR -->
+
   <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image.prod.js"></script>
 
+
+  <!-- A-Frame -->
+
   <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+
+
+  <!-- MindAR + A-Frame -->
 
   <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image-aframe.prod.js"></script>
 
@@ -32,6 +41,8 @@
       overflow: hidden;
 
       background: #000;
+
+      touch-action: none;
 
     }
 
@@ -95,6 +106,38 @@
 
       white-space: nowrap;
 
+      pointer-events: none;
+
+    }
+
+
+    #help {
+
+      position: fixed;
+
+      z-index: 1000;
+
+      bottom: 18px;
+      left: 50%;
+
+      transform: translateX(-50%);
+
+      padding: 9px 14px;
+
+      border-radius: 18px;
+
+      background: rgba(0,0,0,.55);
+
+      color: white;
+
+      font-family: Arial, sans-serif;
+
+      font-size: 12px;
+
+      text-align: center;
+
+      pointer-events: none;
+
     }
 
   </style>
@@ -105,6 +148,8 @@
 <body>
 
 
+<!-- Камера -->
+
 <video
   id="cameraVideo"
   autoplay
@@ -113,9 +158,20 @@
 </video>
 
 
+<!-- Статус -->
+
 <div id="status">
 
   Запуск камеры...
+
+</div>
+
+
+<!-- Подсказка -->
+
+<div id="help">
+
+  1 палец — перемещение · 2 пальца — масштаб · двойной тап — сброс
 
 </div>
 
@@ -174,6 +230,8 @@
   </a-assets>
 
 
+  <!-- Камера A-Frame -->
+
   <a-camera
 
     position="0 0 0"
@@ -208,7 +266,7 @@
 
       scale="0.04 0.04 0.04"
 
-      rotation="90 0 90">
+      rotation="90 0 0">
 
     </a-gltf-model>
 
@@ -220,6 +278,11 @@
 
 
 <script>
+
+
+/* ========================================= */
+/* ОСНОВНЫЕ ЭЛЕМЕНТЫ */
+/* ========================================= */
 
 
 const video =
@@ -238,9 +301,62 @@ const status =
   document.querySelector("#status");
 
 
-/* ----------------------------- */
-/* Камера */
-/* ----------------------------- */
+const scene =
+  document.querySelector("a-scene");
+
+
+/* ========================================= */
+/* НАСТРОЙКИ */
+/* ========================================= */
+
+
+const INITIAL_SCALE = 0.04;
+
+
+/*
+
+   Минимальный и максимальный масштаб.
+
+*/
+
+const MIN_SCALE = 0.005;
+
+const MAX_SCALE = 0.20;
+
+
+/*
+
+   Чувствительность перемещения.
+
+*/
+
+const MOVE_SENSITIVITY = 0.003;
+
+
+/* ========================================= */
+/* ТЕКУЩЕЕ СОСТОЯНИЕ */
+/* ========================================= */
+
+
+let currentScale =
+  INITIAL_SCALE;
+
+
+let currentX = 0;
+
+let currentY = 0;
+
+let currentZ = 0;
+
+
+let targetFound =
+  false;
+
+
+/* ========================================= */
+/* КАМЕРА */
+/* ========================================= */
+
 
 async function startCamera() {
 
@@ -262,7 +378,9 @@ async function startCamera() {
       });
 
 
-    video.srcObject = stream;
+    video.srcObject =
+      stream;
+
 
     await video.play();
 
@@ -271,9 +389,12 @@ async function startCamera() {
       "Наведите камеру на маркер";
 
 
-  } catch (error) {
+  }
+
+  catch (error) {
 
     console.error(error);
+
 
     status.textContent =
       "Нет доступа к камере";
@@ -283,9 +404,43 @@ async function startCamera() {
 }
 
 
-/* ----------------------------- */
-/* Маркер найден */
-/* ----------------------------- */
+/* ========================================= */
+/* ПРИМЕНЕНИЕ TRANSFORM */
+/* ========================================= */
+
+
+function applyTransform() {
+
+
+  model.setAttribute(
+
+    "position",
+
+    `${currentX} ${currentY} ${currentZ}`
+
+  );
+
+
+  model.setAttribute(
+
+    "scale",
+
+    `${currentScale} ${currentScale} ${currentScale}`
+
+  );
+
+
+  status.textContent =
+    "ВЫБОРГСКАЯ · масштаб " +
+    currentScale.toFixed(3);
+
+}
+
+
+/* ========================================= */
+/* ПОКАЗ / СКРЫТИЕ МОДЕЛИ */
+/* ========================================= */
+
 
 target.addEventListener(
 
@@ -293,22 +448,22 @@ target.addEventListener(
 
   () => {
 
+    targetFound =
+      true;
+
+
     model.setAttribute(
       "visible",
       true
     );
 
-    status.textContent =
-      "ВЫБОРГСКАЯ";
+
+    applyTransform();
 
   }
 
 );
 
-
-/* ----------------------------- */
-/* Маркер потерян */
-/* ----------------------------- */
 
 target.addEventListener(
 
@@ -316,10 +471,15 @@ target.addEventListener(
 
   () => {
 
+    targetFound =
+      false;
+
+
     model.setAttribute(
       "visible",
       false
     );
+
 
     status.textContent =
       "Наведите камеру на маркер";
@@ -327,6 +487,390 @@ target.addEventListener(
   }
 
 );
+
+
+/* ========================================= */
+/* TOUCH */
+/* ========================================= */
+
+
+let touchStartX =
+  0;
+
+let touchStartY =
+  0;
+
+
+let lastTouchX =
+  0;
+
+let lastTouchY =
+  0;
+
+
+let initialPinchDistance =
+  0;
+
+
+let initialPinchScale =
+  INITIAL_SCALE;
+
+
+let touchMode =
+  null;
+
+
+/* ========================================= */
+/* РАССТОЯНИЕ МЕЖДУ ДВУМЯ ПАЛЬЦАМИ */
+/* ========================================= */
+
+
+function getDistance(touch1, touch2) {
+
+  const dx =
+    touch1.clientX -
+    touch2.clientX;
+
+
+  const dy =
+    touch1.clientY -
+    touch2.clientY;
+
+
+  return Math.sqrt(
+    dx * dx +
+    dy * dy
+  );
+
+}
+
+
+/* ========================================= */
+/* TOUCH START */
+/* ========================================= */
+
+
+document.addEventListener(
+
+  "touchstart",
+
+  function(event) {
+
+
+    if (!targetFound)
+      return;
+
+
+    /* Два пальца */
+
+    if (event.touches.length === 2) {
+
+
+      touchMode =
+        "pinch";
+
+
+      initialPinchDistance =
+        getDistance(
+
+          event.touches[0],
+
+          event.touches[1]
+
+        );
+
+
+      initialPinchScale =
+        currentScale;
+
+
+      event.preventDefault();
+
+
+      return;
+
+    }
+
+
+    /* Один палец */
+
+    if (event.touches.length === 1) {
+
+
+      touchMode =
+        "move";
+
+
+      touchStartX =
+        event.touches[0].clientX;
+
+
+      touchStartY =
+        event.touches[0].clientY;
+
+
+      lastTouchX =
+        touchStartX;
+
+
+      lastTouchY =
+        touchStartY;
+
+
+      event.preventDefault();
+
+    }
+
+  },
+
+  { passive: false }
+
+);
+
+
+/* ========================================= */
+/* TOUCH MOVE */
+/* ========================================= */
+
+
+document.addEventListener(
+
+  "touchmove",
+
+  function(event) {
+
+
+    if (!targetFound)
+      return;
+
+
+    /* ===================== */
+    /* PINCH */
+    /* ===================== */
+
+
+    if (
+
+      event.touches.length === 2 &&
+
+      touchMode === "pinch"
+
+    ) {
+
+
+      const distance =
+        getDistance(
+
+          event.touches[0],
+
+          event.touches[1]
+
+        );
+
+
+      if (
+        initialPinchDistance > 0
+      ) {
+
+
+        const ratio =
+          distance /
+          initialPinchDistance;
+
+
+        let newScale =
+          initialPinchScale *
+          ratio;
+
+
+        newScale =
+          Math.max(
+
+            MIN_SCALE,
+
+            Math.min(
+
+              MAX_SCALE,
+
+              newScale
+
+            )
+
+          );
+
+
+        currentScale =
+          newScale;
+
+
+        applyTransform();
+
+      }
+
+
+      event.preventDefault();
+
+
+      return;
+
+    }
+
+
+    /* ===================== */
+    /* ПЕРЕМЕЩЕНИЕ */
+    /* ===================== */
+
+
+    if (
+
+      event.touches.length === 1 &&
+
+      touchMode === "move"
+
+    ) {
+
+
+      const x =
+        event.touches[0].clientX;
+
+
+      const y =
+        event.touches[0].clientY;
+
+
+      const dx =
+        x - lastTouchX;
+
+
+      const dy =
+        y - lastTouchY;
+
+
+      /*
+
+        Двигаем модель
+        по плоскости XY.
+
+      */
+
+
+      currentX +=
+        dx *
+        MOVE_SENSITIVITY;
+
+
+      currentY -=
+        dy *
+        MOVE_SENSITIVITY;
+
+
+      lastTouchX =
+        x;
+
+
+      lastTouchY =
+        y;
+
+
+      applyTransform();
+
+
+      event.preventDefault();
+
+    }
+
+  },
+
+  { passive: false }
+
+);
+
+
+/* ========================================= */
+/* TOUCH END */
+/* ========================================= */
+
+
+document.addEventListener(
+
+  "touchend",
+
+  function(event) {
+
+
+    if (
+      event.touches.length === 0
+    ) {
+
+      touchMode =
+        null;
+
+    }
+
+  },
+
+  { passive: false }
+
+);
+
+
+/* ========================================= */
+/* ДВОЙНОЙ ТАП — СБРОС */
+/* ========================================= */
+
+
+let lastTap =
+  0;
+
+
+document.addEventListener(
+
+  "touchend",
+
+  function() {
+
+
+    const now =
+      Date.now();
+
+
+    if (
+      now - lastTap < 300
+    ) {
+
+
+      currentScale =
+        INITIAL_SCALE;
+
+
+      currentX =
+        0;
+
+
+      currentY =
+        0;
+
+
+      currentZ =
+        0;
+
+
+      applyTransform();
+
+    }
+
+
+    lastTap =
+      now;
+
+  }
+
+);
+
+
+/* ========================================= */
+/* ЗАПУСК */
+/* ========================================= */
 
 
 startCamera();
