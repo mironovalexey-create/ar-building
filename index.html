@@ -1,884 +1,294 @@
 <!doctype html>
 <html lang="ru">
-
 <head>
-
-  <meta charset="utf-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1, viewport-fit=cover">
-
-  <title>AR — Выборгская</title>
-
-
-  <!-- MindAR -->
-
-  <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image.prod.js"></script>
-
-
-  <!-- A-Frame -->
-
-  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-
-
-  <!-- MindAR + A-Frame -->
-
-  <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image-aframe.prod.js"></script>
-
-
-  <style>
-
-    html,
-    body {
-
-      margin: 0;
-      padding: 0;
-
-      width: 100%;
-      height: 100%;
-
-      overflow: hidden;
-
-      background: #000;
-
-      touch-action: none;
-
-    }
-
-
-    #cameraVideo {
-
-      position: fixed;
-
-      z-index: 0;
-
-      top: 0;
-      left: 0;
-
-      width: 100vw;
-      height: 100vh;
-
-      object-fit: cover;
-
-      pointer-events: none;
-
-    }
-
-
-    a-scene {
-
-      position: fixed !important;
-
-      z-index: 1;
-
-      top: 0;
-      left: 0;
-
-      width: 100vw !important;
-      height: 100vh !important;
-
-    }
-
-
-    #status {
-
-      position: fixed;
-
-      z-index: 1000;
-
-      top: 15px;
-      left: 50%;
-
-      transform: translateX(-50%);
-
-      padding: 10px 16px;
-
-      border-radius: 20px;
-
-      background: rgba(0,0,0,.65);
-
-      color: white;
-
-      font-family: Arial, sans-serif;
-
-      font-size: 14px;
-
-      white-space: nowrap;
-
-      pointer-events: none;
-
-    }
-
-
-    #help {
-
-      position: fixed;
-
-      z-index: 1000;
-
-      bottom: 18px;
-      left: 50%;
-
-      transform: translateX(-50%);
-
-      padding: 9px 14px;
-
-      border-radius: 18px;
-
-      background: rgba(0,0,0,.55);
-
-      color: white;
-
-      font-family: Arial, sans-serif;
-
-      font-size: 12px;
-
-      text-align: center;
-
-      pointer-events: none;
-
-    }
-
-  </style>
-
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AR — Выборгская</title>
+
+<script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image.prod.js"></script>
+<script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image-aframe.prod.js"></script>
+
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: fixed;
+  inset: 0;
+  background: #000;
+  touch-action: none;
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+#cameraVideo {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+a-scene {
+  position: fixed !important;
+  z-index: 1;
+  inset: 0;
+  width: 100vw !important;
+  height: 100vh !important;
+}
+
+canvas.a-canvas {
+  touch-action: none !important;
+}
+
+#status {
+  position: fixed;
+  z-index: 1000;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 16px;
+  border-radius: 20px;
+  background: rgba(0,0,0,.65);
+  color: #fff;
+  font: 14px Arial, sans-serif;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+#help {
+  position: fixed;
+  z-index: 1000;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 9px 14px;
+  border-radius: 18px;
+  background: rgba(0,0,0,.55);
+  color: #fff;
+  font: 12px Arial, sans-serif;
+  text-align: center;
+  pointer-events: none;
+}
+</style>
 </head>
-
 
 <body>
 
+<video id="cameraVideo" autoplay muted playsinline></video>
 
-<!-- Камера -->
-
-<video
-  id="cameraVideo"
-  autoplay
-  muted
-  playsinline>
-</video>
-
-
-<!-- Статус -->
-
-<div id="status">
-
-  Запуск камеры...
-
-</div>
-
-
-<!-- Подсказка -->
-
-<div id="help">
-
-  1 палец — перемещение · 2 пальца — масштаб · двойной тап — сброс
-
-</div>
-
+<div id="status">Запуск камеры...</div>
+<div id="help">1 палец — перемещение · 2 пальца — масштаб</div>
 
 <a-scene
-
   embedded
-
-  renderer="
-    alpha: true;
-    colorManagement: true;
-    antialias: true;
-  "
-
+  renderer="alpha: true; colorManagement: true; antialias: true;"
   vr-mode-ui="enabled: false"
-
   device-orientation-permission-ui="enabled: false"
-
   mindar-image="
-
     imageTargetSrc: ./targets.mind;
-
     maxTrack: 1;
-
     filterMinCF: 0.0001;
-
     filterBeta: 0.0005;
-
     warmupTolerance: 15;
-
     missTolerance: 30;
-
     autoStart: true;
-
     uiLoading: yes;
-
     uiScanning: yes;
-
     uiError: yes;
-
-  "
-
->
-
+  ">
 
   <a-assets>
-
     <a-asset-item
-
       id="vyborgAsset"
-
       src="./assets/выборгская.glb">
-
     </a-asset-item>
-
   </a-assets>
 
-
-  <!-- Камера A-Frame -->
-
   <a-camera
-
     position="0 0 0"
-
     look-controls="enabled: false">
-
   </a-camera>
 
-
-  <!-- ================================= -->
-  <!-- ВЫБОРГСКАЯ -->
-  <!-- targetIndex 0 -->
-  <!-- ================================= -->
-
-
   <a-entity
-
     id="targetVyborg"
-
     mindar-image-target="targetIndex: 0">
 
-
     <a-gltf-model
-
       id="modelVyborg"
-
       src="#vyborgAsset"
-
       visible="false"
-
       position="0 0 0"
-
       scale="0.04 0.04 0.04"
-
       rotation="90 0 0">
-
     </a-gltf-model>
-
 
   </a-entity>
 
-
 </a-scene>
 
-
 <script>
-
-
-/* ========================================= */
-/* ОСНОВНЫЕ ЭЛЕМЕНТЫ */
-/* ========================================= */
-
-
-const video =
-  document.querySelector("#cameraVideo");
-
-
-const target =
-  document.querySelector("#targetVyborg");
-
-
-const model =
-  document.querySelector("#modelVyborg");
-
-
-const status =
-  document.querySelector("#status");
-
-
-const scene =
-  document.querySelector("a-scene");
-
-
-/* ========================================= */
-/* НАСТРОЙКИ */
-/* ========================================= */
-
+const video = document.querySelector("#cameraVideo");
+const target = document.querySelector("#targetVyborg");
+const model = document.querySelector("#modelVyborg");
+const status = document.querySelector("#status");
+const scene = document.querySelector("a-scene");
 
 const INITIAL_SCALE = 0.04;
-
-
-/*
-
-   Минимальный и максимальный масштаб.
-
-*/
-
 const MIN_SCALE = 0.005;
-
 const MAX_SCALE = 0.20;
-
-
-/*
-
-   Чувствительность перемещения.
-
-*/
-
 const MOVE_SENSITIVITY = 0.003;
 
-
-/* ========================================= */
-/* ТЕКУЩЕЕ СОСТОЯНИЕ */
-/* ========================================= */
-
-
-let currentScale =
-  INITIAL_SCALE;
-
-
+let currentScale = INITIAL_SCALE;
 let currentX = 0;
-
 let currentY = 0;
-
 let currentZ = 0;
-
-
-let targetFound =
-  false;
-
-
-/* ========================================= */
-/* КАМЕРА */
-/* ========================================= */
-
-
-async function startCamera() {
-
-  try {
-
-    const stream =
-      await navigator.mediaDevices.getUserMedia({
-
-        video: {
-
-          facingMode: {
-            ideal: "environment"
-          }
-
-        },
-
-        audio: false
-
-      });
-
-
-    video.srcObject =
-      stream;
-
-
-    await video.play();
-
-
-    status.textContent =
-      "Наведите камеру на маркер";
-
-
-  }
-
-  catch (error) {
-
-    console.error(error);
-
-
-    status.textContent =
-      "Нет доступа к камере";
-
-  }
-
-}
-
-
-/* ========================================= */
-/* ПРИМЕНЕНИЕ TRANSFORM */
-/* ========================================= */
-
+let targetFound = false;
 
 function applyTransform() {
+  model.setAttribute("position", {
+    x: currentX,
+    y: currentY,
+    z: currentZ
+  });
 
-
-  model.setAttribute(
-
-    "position",
-
-    `${currentX} ${currentY} ${currentZ}`
-
-  );
-
-
-  model.setAttribute(
-
-    "scale",
-
-    `${currentScale} ${currentScale} ${currentScale}`
-
-  );
-
-
-  status.textContent =
-    "ВЫБОРГСКАЯ · масштаб " +
-    currentScale.toFixed(3);
-
+  model.setAttribute("scale", {
+    x: currentScale,
+    y: currentScale,
+    z: currentScale
+  });
 }
 
+async function startCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: "environment" }
+      },
+      audio: false
+    });
 
-/* ========================================= */
-/* ПОКАЗ / СКРЫТИЕ МОДЕЛИ */
-/* ========================================= */
+    video.srcObject = stream;
+    await video.play();
 
-
-target.addEventListener(
-
-  "targetFound",
-
-  () => {
-
-    targetFound =
-      true;
-
-
-    model.setAttribute(
-      "visible",
-      true
-    );
-
-
-    applyTransform();
-
+    status.textContent = "Наведите камеру на маркер";
+  } catch (error) {
+    console.error(error);
+    status.textContent = "Нет доступа к камере";
   }
-
-);
-
-
-target.addEventListener(
-
-  "targetLost",
-
-  () => {
-
-    targetFound =
-      false;
-
-
-    model.setAttribute(
-      "visible",
-      false
-    );
-
-
-    status.textContent =
-      "Наведите камеру на маркер";
-
-  }
-
-);
-
-
-/* ========================================= */
-/* TOUCH */
-/* ========================================= */
-
-
-let touchStartX =
-  0;
-
-let touchStartY =
-  0;
-
-
-let lastTouchX =
-  0;
-
-let lastTouchY =
-  0;
-
-
-let initialPinchDistance =
-  0;
-
-
-let initialPinchScale =
-  INITIAL_SCALE;
-
-
-let touchMode =
-  null;
-
-
-/* ========================================= */
-/* РАССТОЯНИЕ МЕЖДУ ДВУМЯ ПАЛЬЦАМИ */
-/* ========================================= */
-
-
-function getDistance(touch1, touch2) {
-
-  const dx =
-    touch1.clientX -
-    touch2.clientX;
-
-
-  const dy =
-    touch1.clientY -
-    touch2.clientY;
-
-
-  return Math.sqrt(
-    dx * dx +
-    dy * dy
-  );
-
 }
 
+target.addEventListener("targetFound", () => {
+  targetFound = true;
+  model.setAttribute("visible", true);
+  status.textContent = "ВЫБОРГСКАЯ";
+});
 
-/* ========================================= */
-/* TOUCH START */
-/* ========================================= */
-
-
-document.addEventListener(
-
-  "touchstart",
-
-  function(event) {
-
-
-    if (!targetFound)
-      return;
+target.addEventListener("targetLost", () => {
+  targetFound = false;
+  model.setAttribute("visible", false);
+  status.textContent = "Наведите камеру на маркер";
+});
 
 
-    /* Два пальца */
+
+/* ----------------------------- */
+/* Touch controls: iPhone Safari / Chrome */
+/* ----------------------------- */
+
+scene.addEventListener("loaded", function () {
+  const canvas = scene.canvas;
+  if (!canvas) return;
+
+  canvas.style.touchAction = "none";
+  canvas.style.webkitUserSelect = "none";
+  canvas.style.userSelect = "none";
+
+  let mode = null;
+  let lastX = 0;
+  let lastY = 0;
+  let startDistance = 0;
+  let startScale = currentScale;
+
+  function distance(a, b) {
+    const dx = a.clientX - b.clientX;
+    const dy = a.clientY - b.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  canvas.addEventListener("touchstart", function (event) {
+    if (!targetFound) return;
 
     if (event.touches.length === 2) {
-
-
-      touchMode =
-        "pinch";
-
-
-      initialPinchDistance =
-        getDistance(
-
-          event.touches[0],
-
-          event.touches[1]
-
-        );
-
-
-      initialPinchScale =
-        currentScale;
-
-
       event.preventDefault();
-
-
-      return;
-
-    }
-
-
-    /* Один палец */
-
-    if (event.touches.length === 1) {
-
-
-      touchMode =
-        "move";
-
-
-      touchStartX =
-        event.touches[0].clientX;
-
-
-      touchStartY =
-        event.touches[0].clientY;
-
-
-      lastTouchX =
-        touchStartX;
-
-
-      lastTouchY =
-        touchStartY;
-
-
+      mode = "pinch";
+      startDistance = distance(event.touches[0], event.touches[1]);
+      startScale = currentScale;
+    } else if (event.touches.length === 1) {
       event.preventDefault();
-
+      mode = "move";
+      lastX = event.touches[0].clientX;
+      lastY = event.touches[0].clientY;
     }
+  }, { passive: false });
 
-  },
+  canvas.addEventListener("touchmove", function (event) {
+    if (!targetFound) return;
+    event.preventDefault();
 
-  { passive: false }
+    if (event.touches.length === 2 && mode === "pinch") {
+      const d = distance(event.touches[0], event.touches[1]);
 
-);
-
-
-/* ========================================= */
-/* TOUCH MOVE */
-/* ========================================= */
-
-
-document.addEventListener(
-
-  "touchmove",
-
-  function(event) {
-
-
-    if (!targetFound)
-      return;
-
-
-    /* ===================== */
-    /* PINCH */
-    /* ===================== */
-
-
-    if (
-
-      event.touches.length === 2 &&
-
-      touchMode === "pinch"
-
-    ) {
-
-
-      const distance =
-        getDistance(
-
-          event.touches[0],
-
-          event.touches[1]
-
+      if (startDistance > 0) {
+        currentScale = Math.max(
+          0.005,
+          Math.min(0.20, startScale * (d / startDistance))
         );
-
-
-      if (
-        initialPinchDistance > 0
-      ) {
-
-
-        const ratio =
-          distance /
-          initialPinchDistance;
-
-
-        let newScale =
-          initialPinchScale *
-          ratio;
-
-
-        newScale =
-          Math.max(
-
-            MIN_SCALE,
-
-            Math.min(
-
-              MAX_SCALE,
-
-              newScale
-
-            )
-
-          );
-
-
-        currentScale =
-          newScale;
-
-
         applyTransform();
-
       }
-
-
-      event.preventDefault();
-
-
       return;
-
     }
 
+    if (event.touches.length === 1 && mode === "move") {
+      const x = event.touches[0].clientX;
+      const y = event.touches[0].clientY;
 
-    /* ===================== */
-    /* ПЕРЕМЕЩЕНИЕ */
-    /* ===================== */
+      currentX += (x - lastX) * 0.003;
+      currentY -= (y - lastY) * 0.003;
 
-
-    if (
-
-      event.touches.length === 1 &&
-
-      touchMode === "move"
-
-    ) {
-
-
-      const x =
-        event.touches[0].clientX;
-
-
-      const y =
-        event.touches[0].clientY;
-
-
-      const dx =
-        x - lastTouchX;
-
-
-      const dy =
-        y - lastTouchY;
-
-
-      /*
-
-        Двигаем модель
-        по плоскости XY.
-
-      */
-
-
-      currentX +=
-        dx *
-        MOVE_SENSITIVITY;
-
-
-      currentY -=
-        dy *
-        MOVE_SENSITIVITY;
-
-
-      lastTouchX =
-        x;
-
-
-      lastTouchY =
-        y;
-
+      lastX = x;
+      lastY = y;
 
       applyTransform();
-
-
-      event.preventDefault();
-
     }
+  }, { passive: false });
 
-  },
+  canvas.addEventListener("touchend", function (event) {
+    event.preventDefault();
 
-  { passive: false }
-
-);
-
-
-/* ========================================= */
-/* TOUCH END */
-/* ========================================= */
-
-
-document.addEventListener(
-
-  "touchend",
-
-  function(event) {
-
-
-    if (
-      event.touches.length === 0
-    ) {
-
-      touchMode =
-        null;
-
+    if (event.touches.length === 0) {
+      mode = null;
+    } else if (event.touches.length === 1) {
+      mode = "move";
+      lastX = event.touches[0].clientX;
+      lastY = event.touches[0].clientY;
     }
+  }, { passive: false });
 
-  },
-
-  { passive: false }
-
-);
-
-
-/* ========================================= */
-/* ДВОЙНОЙ ТАП — СБРОС */
-/* ========================================= */
-
-
-let lastTap =
-  0;
-
-
-document.addEventListener(
-
-  "touchend",
-
-  function() {
-
-
-    const now =
-      Date.now();
-
-
-    if (
-      now - lastTap < 300
-    ) {
-
-
-      currentScale =
-        INITIAL_SCALE;
-
-
-      currentX =
-        0;
-
-
-      currentY =
-        0;
-
-
-      currentZ =
-        0;
-
-
-      applyTransform();
-
-    }
-
-
-    lastTap =
-      now;
-
-  }
-
-);
-
-
-/* ========================================= */
-/* ЗАПУСК */
-/* ========================================= */
-
+  canvas.addEventListener("touchcancel", function (event) {
+    event.preventDefault();
+    mode = null;
+  }, { passive: false });
+});
 
 startCamera();
-
-
 </script>
 
-
 </body>
-
 </html>
